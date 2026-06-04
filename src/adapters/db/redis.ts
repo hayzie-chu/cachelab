@@ -8,7 +8,7 @@ export interface RedisDatabaseAdapterOptions {
 }
 
 export function createRedisDatabaseAdapter<TValue>(
-  _options: RedisDatabaseAdapterOptions,
+	_options: RedisDatabaseAdapterOptions,
 ): DatabaseAdapter<TValue> {
 	const notImplemented = async (): Promise<never> => {
 		throw new Error("Redis adapter is not implemented yet.");

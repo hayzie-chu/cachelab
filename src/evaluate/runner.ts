@@ -8,8 +8,8 @@ export interface ReplayResult<TValue = unknown> {
 }
 
 export async function runReplay<TValue>(
-  client: CacheLabClient<TValue>,
-  queries: ReadonlyArray<string>,
+	client: CacheLabClient<TValue>,
+	queries: ReadonlyArray<string>,
 ): Promise<Array<ReplayResult<TValue>>> {
 	void client;
 	void queries;

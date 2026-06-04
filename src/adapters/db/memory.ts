@@ -27,7 +27,7 @@ export class InMemoryDatabaseAdapter<TValue = string> implements DatabaseAdapter
 }
 
 export function createInMemoryDatabaseAdapter<TValue = string>(
-  seed: ReadonlyArray<CacheEntry<TValue>> = [],
+	seed: ReadonlyArray<CacheEntry<TValue>> = [],
 ): DatabaseAdapter<TValue> {
 	return new InMemoryDatabaseAdapter(seed);
 }

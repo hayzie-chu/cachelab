@@ -1,5 +1,8 @@
 // Vector similarity helpers.
-export function cosineSimilarity(left: ReadonlyArray<number>, right: ReadonlyArray<number>): number {
+export function cosineSimilarity(
+	left: ReadonlyArray<number>,
+	right: ReadonlyArray<number>,
+): number {
 	void left;
 	void right;
 	throw new Error("cosineSimilarity is not implemented yet.");
