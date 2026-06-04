@@ -1,9 +1,3 @@
-// module.exports = [
-//   {
-//     ignores: ["dist/**", "coverage/**", "node_modules/**"],
-//   },
-// ];
-
 const js = require("@eslint/js");
 const tsPlugin = require("@typescript-eslint/eslint-plugin");
 const tsParser = require("@typescript-eslint/parser");
