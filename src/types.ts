@@ -39,6 +39,7 @@ export interface MetricEntry<TValue = unknown> {
 export interface QueryResult<TValue = unknown> {
 	data: TValue;
 	source: CacheSource;
+	decision: CacheDecision<TValue>;
 	cachedAt?: string;
 }
 
