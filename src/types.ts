@@ -49,13 +49,3 @@ export interface CacheDecision<TValue = unknown> {
 	entry?: CacheEntry<TValue>;
 	reason: "no-candidate" | "threshold-met" | "threshold-not-met";
 }
-
-export interface Stats {
-	hits: number;
-	misses: number;
-	total: number;
-	hitRate: number;
-	averageSimilarity: number;
-	minSimilarity: number;
-	maxSimilarity: number;
-}
