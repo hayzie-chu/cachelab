@@ -12,6 +12,30 @@ export interface CacheEntry<TValue = unknown> {
 	metadata?: Record<string, unknown>;
 }
 
+export interface MetricEntry {
+	id: string;
+
+	timestamp: string;
+    
+	hit: boolean;
+	reason: "no-candidate" | "threshold-met" | "threshold-not-met";
+
+	similarity: number;
+	threshold: number;
+
+	lookupLatencyMs: number;
+	generationLatencyMs?: number;
+
+	model?: string;
+	db?: string;
+	embeddingModel?: string;
+
+	tokensSaved?: number;
+	latencySavedMs?: number;
+
+	metadata?: Record<string, unknown>;
+}
+
 export interface QueryResult<TValue = unknown> {
 	data: TValue;
 	source: CacheSource;
