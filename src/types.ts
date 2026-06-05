@@ -12,9 +12,34 @@ export interface CacheEntry<TValue = unknown> {
 	metadata?: Record<string, unknown>;
 }
 
+export interface MetricEntry<TValue = unknown> {
+	id: string;
+
+	timestamp: string;
+
+	hit: boolean;
+	reason: "no-candidate" | "threshold-met" | "threshold-not-met";
+
+	similarity: number;
+	threshold: number;
+
+	lookupLatencyMs: number;
+	generationLatencyMs?: number;
+
+	model?: string;
+	db?: string;
+	embeddingModel?: string;
+
+	tokensSaved?: number;
+	latencySavedMs?: number;
+
+	metadata?: Record<string, unknown>;
+}
+
 export interface QueryResult<TValue = unknown> {
 	data: TValue;
 	source: CacheSource;
+	decision: CacheDecision<TValue>;
 	cachedAt?: string;
 }
 
@@ -24,14 +49,4 @@ export interface CacheDecision<TValue = unknown> {
 	threshold: number;
 	entry?: CacheEntry<TValue>;
 	reason: "no-candidate" | "threshold-met" | "threshold-not-met";
-}
-
-export interface Stats {
-	hits: number;
-	misses: number;
-	total: number;
-	hitRate: number;
-	averageSimilarity: number;
-	minSimilarity: number;
-	maxSimilarity: number;
 }
