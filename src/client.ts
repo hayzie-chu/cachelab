@@ -1,8 +1,9 @@
 // Main CacheLab client entry point.
+import { randomUUID } from "node:crypto";
 import type { DatabaseAdapter } from "./adapters/db/types";
 import type { EmbeddingAdapter } from "./adapters/embeddings/types";
 import type { MetricAdapter } from "./adapters/metrics/types";
-import type { QueryResult } from "./types";
+import type { CacheEntry, QueryResult } from "./types";
 
 export interface CacheLabClientOptions<TValue = string> {
 	dbAdapter: DatabaseAdapter<TValue>;
@@ -21,18 +22,46 @@ export class CacheLabClient<TValue = string> {
 		metadata?: Record<string, unknown>;
 	}): Promise<QueryResult<TValue>> {
 		const threshold = options.threshold ?? 0.8;
-		const model = options.model ?? "N/A";
+		const queryEmbedding = await this.options.embeddingAdapter.embed(options.query);
+		const decision = await this.options.dbAdapter.findBestMatch(queryEmbedding, threshold);
 
-		// TODO: Generate query embedding.
+		if (decision.hit && decision.entry) {
+			const cachedEntry = decision.entry;
+			const refreshedEntry: CacheEntry<TValue> = {
+				...cachedEntry,
+				hits: cachedEntry.hits + 1,
+				updatedAt: new Date().toISOString(),
+			};
 
-		// TODO: Retrieve candidate cache entries.
+			await this.options.dbAdapter.upsert(refreshedEntry);
 
-		// TODO: Determine cache hit/miss using threshold.
+			return {
+				data: cachedEntry.value,
+				source: "cache",
+				decision,
+				cachedAt: cachedEntry.createdAt,
+			};
+		}
 
-		// TODO: Record metrics.
+		const data = await options.compute();
+		const timestamp = new Date().toISOString();
+		const cachedEntry: CacheEntry<TValue> = {
+			id: randomUUID(),
+			query: options.query,
+			embedding: queryEmbedding,
+			value: data,
+			createdAt: timestamp,
+			updatedAt: timestamp,
+			hits: 0,
+			metadata: options.metadata,
+		};
 
-		// TODO: Return cached value or compute new value.
+		await this.options.dbAdapter.upsert(cachedEntry);
 
-		throw new Error("Not implemented");
+		return {
+			data,
+			source: "origin",
+			decision,
+		};
 	}
 }

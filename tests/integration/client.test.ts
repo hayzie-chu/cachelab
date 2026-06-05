@@ -4,6 +4,47 @@ import type { CacheEntry } from "../../src/types";
 describe("CacheLabClient.invoke", () => {
 	const createClient = (entries: Array<CacheEntry<string>> = []) => {
 		const dbAdapter = {
+			findBestMatch: jest.fn().mockImplementation(async (queryEmbedding: ReadonlyArray<number>, threshold: number) => {
+				let bestEntry: CacheEntry<string> | undefined;
+				let bestSimilarity = 0;
+
+				for (const entry of entries) {
+					const similarity = cosineSimilarity(queryEmbedding, entry.embedding);
+
+					if (bestEntry === undefined || similarity > bestSimilarity) {
+						bestEntry = entry;
+						bestSimilarity = similarity;
+					}
+				}
+
+				if (bestEntry === undefined) {
+					return {
+						hit: false,
+						similarity: 0,
+						threshold,
+						entry: undefined,
+						reason: "no-candidate",
+					};
+				}
+
+				if (bestSimilarity >= threshold) {
+					return {
+						hit: true,
+						similarity: bestSimilarity,
+						threshold,
+						entry: bestEntry,
+						reason: "threshold-met",
+					};
+				}
+
+				return {
+					hit: false,
+					similarity: bestSimilarity,
+					threshold,
+					entry: undefined,
+					reason: "threshold-not-met",
+				};
+			}),
 			getAll: jest.fn().mockResolvedValue(entries),
 			getById: jest.fn(),
 			upsert: jest.fn().mockResolvedValue(undefined),
@@ -20,6 +61,28 @@ describe("CacheLabClient.invoke", () => {
 			dbAdapter,
 			embeddingAdapter,
 		};
+	};
+
+	const cosineSimilarity = (left: ReadonlyArray<number>, right: ReadonlyArray<number>): number => {
+		if (left.length === 0 || right.length === 0 || left.length !== right.length) {
+			return 0;
+		}
+
+		let dotProduct = 0;
+		let leftMagnitudeSquared = 0;
+		let rightMagnitudeSquared = 0;
+
+		for (let index = 0; index < left.length; index += 1) {
+			dotProduct += left[index] * right[index];
+			leftMagnitudeSquared += left[index] * left[index];
+			rightMagnitudeSquared += right[index] * right[index];
+		}
+
+		if (leftMagnitudeSquared === 0 || rightMagnitudeSquared === 0) {
+			return 0;
+		}
+
+		return dotProduct / (Math.sqrt(leftMagnitudeSquared) * Math.sqrt(rightMagnitudeSquared));
 	};
 
 	const makeEntry = (overrides: Partial<CacheEntry<string>> = {}): CacheEntry<string> => ({
@@ -71,7 +134,7 @@ describe("CacheLabClient.invoke", () => {
 			const cachedEntry = makeEntry({
 				id: "entry-4",
 				query: "what is the tuition fee",
-				embedding: [0.9, Math.sqrt(1 - 0.9 * 0.9)],
+				embedding: [1, 0],
 				value: "tuition is $5000",
 				hits: 1,
 			});
@@ -182,16 +245,18 @@ describe("CacheLabClient.invoke", () => {
 		});
 
 		it("similarity just below the threshold", async () => {
+			// probe vector has cosine similarity of ~0.8999 with the cached entry, just below the 0.9 threshold
+			// ==> accuracy: 4 decimal places, can be changed as necessary
 			const cachedEntry = makeEntry({
 				id: "entry-5",
 				query: "what is the tuition fee",
-				embedding: [0.9, Math.sqrt(1 - 0.9 * 0.9)],
+				embedding: [1, 0],
 				value: "tuition is $5000",
 				hits: 1,
 			});
 
 			const { client, embeddingAdapter } = createClient([cachedEntry]);
-			embeddingAdapter.embed.mockResolvedValue([0.89, Math.sqrt(1 - 0.89 * 0.89)]);
+			embeddingAdapter.embed.mockResolvedValue([0.8999, Math.sqrt(1 - 0.8999 * 0.8999)]);
 			const compute = jest.fn().mockResolvedValue("fresh value");
 
 			const result = await client.invoke({
@@ -203,7 +268,7 @@ describe("CacheLabClient.invoke", () => {
 			expect(compute).toHaveBeenCalledTimes(1);
 			expect(result.source).toBe("origin");
 			expect(result.decision.hit).toBe(false);
-			expect(result.decision.similarity).toBeCloseTo(0.89);
+			expect(result.decision.similarity).toBeCloseTo(0.8999);
 		});
 	});
 

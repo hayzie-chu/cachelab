@@ -1,6 +1,6 @@
 // Postgres pgvector database adapter scaffold.
-import type { CacheDecision, CacheEntry } from "../../types";
-import type { DatabaseAdapter } from "./types";
+import type { CacheDecision, CacheEntry } from "../../../types";
+import type { DatabaseAdapter } from "../types";
 
 export interface PostgresDatabaseAdapterOptions {
 	connectionString: string;
