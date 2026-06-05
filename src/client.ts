@@ -1,14 +1,13 @@
 // Main CacheLab client entry point.
 import type { DatabaseAdapter } from "./adapters/db/types";
 import type { EmbeddingAdapter } from "./adapters/embeddings/types";
-import type { LLMAdapter } from "./adapters/llm/types";
+import type { MetricAdapter } from "./adapters/metrics/types";
 import type { QueryResult } from "./types";
 
 export interface CacheLabClientOptions<TValue = string> {
 	dbAdapter: DatabaseAdapter<TValue>;
 	embeddingAdapter: EmbeddingAdapter;
-	llmAdapter?: LLMAdapter<TValue>;
-	similarityThreshold?: number;
+	metricAdapter?: MetricAdapter<TValue>;
 }
 
 export class CacheLabClient<TValue = string> {
