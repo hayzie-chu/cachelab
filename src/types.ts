@@ -12,11 +12,11 @@ export interface CacheEntry<TValue = unknown> {
 	metadata?: Record<string, unknown>;
 }
 
-export interface MetricEntry {
+export interface MetricEntry<TValue = unknown> {
 	id: string;
 
 	timestamp: string;
-    
+
 	hit: boolean;
 	reason: "no-candidate" | "threshold-met" | "threshold-not-met";
 
