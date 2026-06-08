@@ -1,6 +1,6 @@
 // Redis database adapter scaffold.
-import type { CacheEntry } from "../../types";
-import type { DatabaseAdapter } from "./types";
+import type { CacheDecision, CacheEntry } from "../../../types";
+import type { DatabaseAdapter } from "../types";
 
 export interface RedisDatabaseAdapterOptions {
 	connectionString: string;
@@ -14,7 +14,12 @@ export function createRedisDatabaseAdapter<TValue>(
 		throw new Error("Redis adapter is not implemented yet.");
 	};
 
+	const searchNotImplemented = async (): Promise<CacheDecision<TValue>> => {
+		throw new Error("Redis adapter search is not implemented yet.");
+	};
+
 	return {
+		findBestMatch: searchNotImplemented,
 		getAll: notImplemented,
 		getById: notImplemented,
 		upsert: notImplemented,

@@ -2,18 +2,16 @@
 
 export { CacheLabClient } from "./client";
 
-export type { CacheEntry, QueryResult, MetricEntry } from "./types";
+export type { CacheDecision, CacheEntry, MetricEntry, QueryResult } from "./types";
 
-export { createPostgresDatabaseAdapter } from "./adapters/db/postgres";
+export type { DatabaseAdapter } from "./adapters/db/types";
+
+export { createInMemoryDatabaseAdapter } from "./adapters/db/in-memory";
+
+export { createPostgresDatabaseAdapter } from "./adapters/db/providers/postgres";
+
+export { createRedisDatabaseAdapter } from "./adapters/db/providers/redis";
 
 export { createOpenAIEmbeddingAdapter } from "./adapters/embeddings/openai";
 
 export { createPostgresMetricsStoreAdapter } from "./adapters/metrics/postgres";
-
-// export {
-//     createRedisDatabaseAdapter,
-// } from "./adapters/db/redis";
-
-// export {
-//     createInMemoryDatabaseAdapter,
-// } from "./adapters/db/redis";
