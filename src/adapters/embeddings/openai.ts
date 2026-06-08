@@ -7,7 +7,7 @@ export interface OpenAIEmbeddingAdapterOptions {
 	baseUrl?: string;
 }
 
-interface OpenAIEmbeddingResponse {
+interface _OpenAIEmbeddingResponse {
 	data: Array<{
 		embedding: number[];
 	}>;
@@ -18,7 +18,7 @@ export function createOpenAIEmbeddingAdapter(
 ): EmbeddingAdapter {
 	void options;
 	return {
-		async embed(input: string): Promise<Array<number>> {
+		async embed(_input: string): Promise<Array<number>> {
 			throw new Error("createOpenAIEmbeddingAdapter is not implemented yet.");
 		},
 	};

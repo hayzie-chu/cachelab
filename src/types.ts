@@ -12,7 +12,7 @@ export interface CacheEntry<TValue = unknown> {
 	metadata?: Record<string, unknown>;
 }
 
-export interface MetricEntry<TValue = unknown> {
+export interface MetricEntry<_TValue = unknown> {
 	id: string;
 
 	timestamp: string;
