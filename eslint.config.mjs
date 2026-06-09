@@ -1,8 +1,8 @@
-const js = require("@eslint/js");
-const tsPlugin = require("@typescript-eslint/eslint-plugin");
-const tsParser = require("@typescript-eslint/parser");
+import js from "@eslint/js";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
+import tsParser from "@typescript-eslint/parser";
 
-module.exports = [
+export default [
 	js.configs.recommended,
 	{
 		files: ["src/**/*.ts"],
@@ -15,9 +15,18 @@ module.exports = [
 			...tsPlugin.configs.recommended.rules,
 			"@typescript-eslint/no-explicit-any": "warn",
 			"@typescript-eslint/explicit-function-return-type": "warn",
+            "@typescript-eslint/no-unused-vars": [
+                "error",
+                {
+                    argsIgnorePattern: "^_",
+                    varsIgnorePattern: "^_",
+                    caughtErrorsIgnorePattern: "^_",
+                },
+            ]
 		},
 	},
 	{
 		ignores: ["dist/**", "coverage/**", "node_modules/**"],
 	},
+    
 ];

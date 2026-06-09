@@ -1,5 +1,5 @@
 // Postgres pgvector database adapter scaffold.
-import type { CacheEntry } from "../../types";
+import type { MetricEntry } from "../../types";
 import type { MetricAdapter } from "./types";
 
 export interface PostgresMetricsStoreAdapterOptions {
@@ -23,4 +23,4 @@ export function createPostgresMetricsStoreAdapter<TValue>(
 	} satisfies MetricAdapter<TValue>;
 }
 
-export type PostgresMetricEntry<TValue = unknown> = MetricAdapter<TValue>;
+export type PostgresMetricEntry<TValue = unknown> = MetricEntry<TValue>;
