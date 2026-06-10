@@ -17,15 +17,17 @@ export interface MetricEntry<_TValue = unknown> {
 
 	timestamp: string;
 
-	hit: boolean;
-	reason: "no-candidate" | "threshold-met" | "threshold-not-met";
-
-	similarity: number;
 	threshold: number;
 
 	lookupLatencyMs: number;
+
+	hit: boolean;
+	reason: "no-candidate" | "threshold-met" | "threshold-not-met";
+	similarity: number;
+
 	generationLatencyMs?: number;
 
+	tokensUsed?: number;
 	model?: string;
 	db?: string;
 	embeddingModel?: string;

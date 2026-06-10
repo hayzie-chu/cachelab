@@ -4,47 +4,51 @@ import type { CacheEntry } from "../../src/types";
 describe("CacheLabClient.invoke", () => {
 	const createClient = (entries: Array<CacheEntry<string>> = []) => {
 		const dbAdapter = {
-			findBestMatch: jest.fn().mockImplementation(async (queryEmbedding: ReadonlyArray<number>, threshold: number) => {
-				let bestEntry: CacheEntry<string> | undefined;
-				let bestSimilarity = 0;
+			findBestMatch: jest
+				.fn()
+				.mockImplementation(
+					async (queryEmbedding: ReadonlyArray<number>, threshold: number) => {
+						let bestEntry: CacheEntry<string> | undefined;
+						let bestSimilarity = 0;
 
-				for (const entry of entries) {
-					const similarity = cosineSimilarity(queryEmbedding, entry.embedding);
+						for (const entry of entries) {
+							const similarity = cosineSimilarity(queryEmbedding, entry.embedding);
 
-					if (bestEntry === undefined || similarity > bestSimilarity) {
-						bestEntry = entry;
-						bestSimilarity = similarity;
-					}
-				}
+							if (bestEntry === undefined || similarity > bestSimilarity) {
+								bestEntry = entry;
+								bestSimilarity = similarity;
+							}
+						}
 
-				if (bestEntry === undefined) {
-					return {
-						hit: false,
-						similarity: 0,
-						threshold,
-						entry: undefined,
-						reason: "no-candidate",
-					};
-				}
+						if (bestEntry === undefined) {
+							return {
+								hit: false,
+								similarity: 0,
+								threshold,
+								entry: undefined,
+								reason: "no-candidate",
+							};
+						}
 
-				if (bestSimilarity >= threshold) {
-					return {
-						hit: true,
-						similarity: bestSimilarity,
-						threshold,
-						entry: bestEntry,
-						reason: "threshold-met",
-					};
-				}
+						if (bestSimilarity >= threshold) {
+							return {
+								hit: true,
+								similarity: bestSimilarity,
+								threshold,
+								entry: bestEntry,
+								reason: "threshold-met",
+							};
+						}
 
-				return {
-					hit: false,
-					similarity: bestSimilarity,
-					threshold,
-					entry: undefined,
-					reason: "threshold-not-met",
-				};
-			}),
+						return {
+							hit: false,
+							similarity: bestSimilarity,
+							threshold,
+							entry: undefined,
+							reason: "threshold-not-met",
+						};
+					},
+				),
 			getAll: jest.fn().mockResolvedValue(entries),
 			getById: jest.fn(),
 			upsert: jest.fn().mockResolvedValue(undefined),
@@ -63,7 +67,10 @@ describe("CacheLabClient.invoke", () => {
 		};
 	};
 
-	const cosineSimilarity = (left: ReadonlyArray<number>, right: ReadonlyArray<number>): number => {
+	const cosineSimilarity = (
+		left: ReadonlyArray<number>,
+		right: ReadonlyArray<number>,
+	): number => {
 		if (left.length === 0 || right.length === 0 || left.length !== right.length) {
 			return 0;
 		}
@@ -179,8 +186,18 @@ describe("CacheLabClient.invoke", () => {
 		});
 
 		it("returns only correct answer from multiple candidates", async () => {
-			const a = makeEntry({ id: "a", query: "query a", embedding: [1, 0], value: "cached a" });
-			const b = makeEntry({ id: "b", query: "query b", embedding: [0.6, 0.8], value: "cached b" });
+			const a = makeEntry({
+				id: "a",
+				query: "query a",
+				embedding: [1, 0],
+				value: "cached a",
+			});
+			const b = makeEntry({
+				id: "b",
+				query: "query b",
+				embedding: [0.6, 0.8],
+				value: "cached b",
+			});
 
 			const { client, embeddingAdapter } = createClient([a, b]);
 			embeddingAdapter.embed.mockResolvedValue([0.7, 0.7]);
@@ -194,7 +211,7 @@ describe("CacheLabClient.invoke", () => {
 			expect(result.decision.entry?.id).toBe("b");
 		});
 	});
-    
+
 	describe("cache miss invoke compute function", () => {
 		it("no entry in cache", async () => {
 			const { client } = createClient([]);
@@ -287,10 +304,12 @@ describe("CacheLabClient.invoke", () => {
 			expect(compute).toHaveBeenCalledTimes(1);
 			expect(dbAdapter.upsert).toHaveBeenCalled();
 			const upsertArg = (dbAdapter.upsert as jest.Mock).mock.calls[0][0];
-			expect(upsertArg).toEqual(expect.objectContaining({
-				query: "store this",
-				value: "stored value",
-			}));
+			expect(upsertArg).toEqual(
+				expect.objectContaining({
+					query: "store this",
+					value: "stored value",
+				}),
+			);
 			expect(result.data).toBe("stored value");
 		});
 
@@ -337,7 +356,4 @@ describe("CacheLabClient.invoke", () => {
 			expect(result.decision.entry?.id).toBe("b");
 		});
 	});
-
 });
-
-
