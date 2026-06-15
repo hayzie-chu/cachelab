@@ -1,6 +1,7 @@
 // Postgres pgvector database adapter scaffold.
 import type { CacheDecision, CacheEntry } from "../../../types";
 import type { DatabaseAdapter } from "../types";
+import { Pool } from "pg";
 
 export interface PostgresDatabaseAdapterOptions {
 	connectionString: string;
@@ -8,18 +9,18 @@ export interface PostgresDatabaseAdapterOptions {
 }
 
 export function createPostgresDatabaseAdapter<TValue>(
-	_options: PostgresDatabaseAdapterOptions,
+	options: PostgresDatabaseAdapterOptions,
 ): DatabaseAdapter<TValue> {
+	const pool = new Pool({
+		connectionString: options.connectionString,
+	});
+
 	const notImplemented = async (): Promise<never> => {
 		throw new Error("Postgres adapter is not implemented yet.");
 	};
 
-	const searchNotImplemented = async (): Promise<CacheDecision<TValue>> => {
-		throw new Error("Postgres adapter search is not implemented yet.");
-	};
-
 	return {
-		findBestMatch: searchNotImplemented,
+		findBestMatch: notImplemented,
 		getAll: notImplemented,
 		getById: notImplemented,
 		upsert: notImplemented,
