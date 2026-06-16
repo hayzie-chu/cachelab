@@ -5,18 +5,17 @@ CacheLab is a semantic cache toolkit for TypeScript. It gives you a small client
 ## Quick start
 
 ```ts
-import { CacheLabClient, createInMemoryDatabaseAdapter } from "cachelab";
+import {
+	CacheLabClient,
+	createInMemoryDatabaseAdapter,
+	createOpenAIEmbeddingAdapter,
+} from "cachelab";
 
-// Any object implementing the EmbeddingAdapter contract works here.
-// (A built-in OpenAI adapter ships with the package — see "Embeddings" below.)
-const embeddingAdapter = {
-	async embed(input) {
-		return toVector(input);
-	},
-	async embedBatch(inputs) {
-		return inputs.map(toVector);
-	},
-};
+// A built-in OpenAI adapter ships with the package 
+// // Any object implementing the EmbeddingAdapter contract works here too, see "Embeddings" below.
+const embeddingAdapter = createOpenAIEmbeddingAdapter({
+	apiKey: process.env.OPENAI_API_KEY!,
+});
 
 const client = new CacheLabClient({
 	dbAdapter: createInMemoryDatabaseAdapter(),
@@ -43,11 +42,14 @@ An embedding adapter implements two methods:
 A built-in OpenAI adapter is included (more providers are planned):
 
 ```ts
-import { createOpenAIEmbeddingAdapter } from "cachelab";
-
-const embeddingAdapter = createOpenAIEmbeddingAdapter({
-	apiKey: process.env.OPENAI_API_KEY!,
-});
+const embeddingAdapter = {
+	async embed(input: string): Promise<number[]> {
+		return myEmbedder(input); // myEmbedder is your custom embedding logic
+	},
+	async embedBatch(inputs: string[]): Promise<number[][]> {
+		return Promise.all(inputs.map(myEmbedder));
+	},
+};
 ```
 
 ### Seeding the cache
