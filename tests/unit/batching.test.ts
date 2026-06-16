@@ -91,6 +91,7 @@ describe("createBatchingEmbeddingAdapter", () => {
 	});
 
 	it("passes embedBatch straight through to the inner adapter", async () => {
+		// direct embedBatch calls doesnt go through the batching logic without waiting for a flush, unlike embed calls
 		const inner = makeInner(jest.fn().mockResolvedValue([[9, 9]]));
 		const adapter = createBatchingEmbeddingAdapter(inner, {
 			maxBatchSize: 2,
