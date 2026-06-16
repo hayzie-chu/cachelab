@@ -2,7 +2,20 @@
 
 export { CacheLabClient } from "./client";
 
+export type {
+	CacheLabClientOptions,
+	SeedEntry,
+	SeedOptions,
+} from "./client";
+
 export type { CacheDecision, CacheEntry, MetricEntry, QueryResult } from "./types";
+
+export type { EmbeddingAdapter } from "./adapters/embeddings/types";
+
+export {
+	createBatchingEmbeddingAdapter,
+	type BatchingEmbeddingAdapterOptions,
+} from "./adapters/embeddings/batching";
 
 export type { DatabaseAdapter } from "./adapters/db/types";
 
