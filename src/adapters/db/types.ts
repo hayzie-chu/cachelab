@@ -2,6 +2,9 @@
 import type { CacheDecision, CacheEntry } from "../../types";
 
 export interface DatabaseAdapter<TValue = unknown> {
+	initialize?(): Promise<void>;
+	close?(): Promise<void>;
+
 	findBestMatch(
 		queryEmbedding: ReadonlyArray<number>,
 		threshold: number,
