@@ -58,6 +58,7 @@ describe("CacheLabClient.invoke", () => {
 
 		const embeddingAdapter = {
 			embed: jest.fn().mockResolvedValue([1, 0]),
+			embedBatch: jest.fn().mockResolvedValue([[1, 0]]),
 		};
 
 		return {
@@ -335,6 +336,116 @@ describe("CacheLabClient.invoke", () => {
 			expect(dbAdapter.upsert).toHaveBeenCalled();
 			const upsertArg = (dbAdapter.upsert as jest.Mock).mock.calls[0][0];
 			expect(upsertArg.hits).toBe(cachedEntry.hits + 1);
+		});
+	});
+
+	describe("seed", () => {
+		it("batches embeddings by default and upserts an entry per query", async () => {
+			const { client, dbAdapter, embeddingAdapter } = createClient([]);
+			embeddingAdapter.embedBatch.mockResolvedValue([
+				[1, 0],
+				[0, 1],
+			]);
+
+			await client.seed([
+				{ query: "q1", value: "v1" },
+				{ query: "q2", value: "v2", metadata: { tag: "x" } },
+			]);
+
+			expect(embeddingAdapter.embedBatch).toHaveBeenCalledWith(["q1", "q2"]);
+			expect(embeddingAdapter.embed).not.toHaveBeenCalled();
+			expect(dbAdapter.upsert).toHaveBeenCalledTimes(2);
+
+			const firstEntry = (dbAdapter.upsert as jest.Mock).mock.calls[0][0];
+			expect(firstEntry).toEqual(
+				expect.objectContaining({
+					query: "q1",
+					value: "v1",
+					embedding: [1, 0],
+					hits: 0,
+				}),
+			);
+
+			const secondEntry = (dbAdapter.upsert as jest.Mock).mock.calls[1][0];
+			expect(secondEntry).toEqual(
+				expect.objectContaining({
+					query: "q2",
+					value: "v2",
+					embedding: [0, 1],
+					metadata: { tag: "x" },
+				}),
+			);
+		});
+
+		it("embeds sequentially when batching is disabled", async () => {
+			const { client, dbAdapter, embeddingAdapter } = createClient([]);
+			embeddingAdapter.embed
+				.mockResolvedValueOnce([1, 0])
+				.mockResolvedValueOnce([0, 1]);
+
+			await client.seed(
+				[
+					{ query: "q1", value: "v1" },
+					{ query: "q2", value: "v2" },
+				],
+				{ batch: false },
+			);
+
+			expect(embeddingAdapter.embed).toHaveBeenCalledTimes(2);
+			expect(embeddingAdapter.embedBatch).not.toHaveBeenCalled();
+			expect(dbAdapter.upsert).toHaveBeenCalledTimes(2);
+		});
+
+		it("does nothing for an empty seed list", async () => {
+			const { client, dbAdapter, embeddingAdapter } = createClient([]);
+
+			await client.seed([]);
+
+			expect(embeddingAdapter.embed).not.toHaveBeenCalled();
+			expect(embeddingAdapter.embedBatch).not.toHaveBeenCalled();
+			expect(dbAdapter.upsert).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("invoke with batching enabled", () => {
+		it("coalesces concurrent query embeds into a single batch", async () => {
+			const embeddingAdapter = {
+				embed: jest.fn(),
+				embedBatch: jest.fn().mockResolvedValue([
+					[1, 0],
+					[1, 0],
+				]),
+			};
+			const dbAdapter = {
+				findBestMatch: jest.fn().mockResolvedValue({
+					hit: false,
+					similarity: 0,
+					threshold: 0.8,
+					entry: undefined,
+					reason: "no-candidate",
+				}),
+				getAll: jest.fn(),
+				getById: jest.fn(),
+				upsert: jest.fn().mockResolvedValue(undefined),
+				remove: jest.fn(),
+				clear: jest.fn(),
+			};
+
+			const client = new CacheLabClient({
+				dbAdapter,
+				embeddingAdapter,
+				batching: { maxBatchSize: 2, maxWaitMs: 1000 },
+			});
+			const compute = jest.fn().mockResolvedValue("origin value");
+
+			await Promise.all([
+				client.invoke({ query: "a", compute }),
+				client.invoke({ query: "b", compute }),
+			]);
+
+			expect(embeddingAdapter.embedBatch).toHaveBeenCalledTimes(1);
+			expect(embeddingAdapter.embedBatch).toHaveBeenCalledWith(["a", "b"]);
+			expect(embeddingAdapter.embed).not.toHaveBeenCalled();
 		});
 	});
 

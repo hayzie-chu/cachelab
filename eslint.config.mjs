@@ -9,6 +9,12 @@ export default [
 		languageOptions: {
 			parser: tsParser,
 			parserOptions: { project: "./tsconfig.json" },
+			globals: {
+				fetch: "readonly",
+				Response: "readonly",
+				setTimeout: "readonly",
+				clearTimeout: "readonly",
+			},
 		},
 		plugins: { "@typescript-eslint": tsPlugin },
 		rules: {
