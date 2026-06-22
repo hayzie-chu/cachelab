@@ -1,78 +1,175 @@
+import { Pool } from "pg";
+import "dotenv/config";
+
+import { createPostgresDatabaseAdapter } from "../../src/adapters/db/providers/postgres";
+import type { CacheEntry } from "../../src/types";
+
 describe("PostgresDatabaseAdapter", () => {
+	let pool: Pool;
+	let adapter: ReturnType<typeof createPostgresDatabaseAdapter>;
+
+	beforeEach(async () => {
+		const connectionString = process.env.TEST_POSTGRES_CONNECTION_STRING;
+
+		if (!connectionString) {
+			throw new Error("TEST_POSTGRES_CONNECTION_STRING must be set for integration tests");
+		}
+
+		pool = new Pool({ connectionString });
+
+		adapter = createPostgresDatabaseAdapter({
+			connectionString,
+		});
+
+		await adapter.initialize?.();
+		await adapter.clear();
+	});
+
+	afterEach(async () => {
+		await adapter?.close?.();
+		await pool?.end();
+	});
+
 	describe("database initialization", () => {
-		it.todo("creates required database resources");
-		it.todo("can initialize an empty database");
-		it.todo("can initialize an already-initialized database");
-		it.todo("creates vector search support");
+		it("creates the cache_entries table when it does not exist", async () => {
+			const result = await pool.query(`
+				SELECT EXISTS (
+					SELECT 1
+					FROM information_schema.tables
+					WHERE table_name = 'cache_entries'
+				) AS exists
+			`);
+
+			expect(result.rows[0].exists).toBe(true);
+		});
 	});
 
 	describe("entry persistence", () => {
-		it.todo("inserts a new entry");
-		it.todo("updates an existing entry");
-		it.todo("preserves all entry fields");
-		it.todo("supports entries with metadata");
-		it.todo("supports entries without metadata");
-		it.todo("supports arbitrary JSON values");
-	});
+		it("updates an existing entry without modifying createdAt", async () => {
+			const original: CacheEntry = {
+				id: "entry-1",
+				query: "hello",
+				embedding: [1, 0, 0],
+				value: { version: 1 },
+				createdAt: "2025-01-01T00:00:00.000Z",
+				updatedAt: "2025-01-01T00:00:00.000Z",
+				hits: 0,
+				metadata: {
+					source: "original",
+				},
+			};
 
-	describe("vector search", () => {
-		it.todo("returns no-candidate when no entries exist");
-		it.todo("returns the nearest embedding");
-		it.todo("returns the highest similarity match among multiple candidates");
-		it.todo("returns threshold-not-met when the nearest match is below threshold");
-		it.todo("returns threshold-met when the nearest match meets threshold");
-		it.todo("returns similarity information");
-		it.todo("supports high-dimensional embeddings");
-		it.todo("supports embeddings of arbitrary dimension");
+			await adapter.upsert(original);
+
+			const updated: CacheEntry = {
+				...original,
+				query: "updated query",
+				embedding: [0, 1, 0],
+				value: { version: 2 },
+				updatedAt: "2025-01-02T00:00:00.000Z",
+				metadata: {
+					source: "updated",
+				},
+			};
+
+			await adapter.upsert(updated);
+
+			const stored = await adapter.getById(original.id);
+
+			expect(stored).toBeDefined();
+
+			expect(stored?.createdAt).toBe(original.createdAt);
+			expect(stored?.updatedAt).toBe(updated.updatedAt);
+
+			expect(stored?.query).toBe(updated.query);
+			expect(stored?.embedding).toEqual(updated.embedding);
+			expect(stored?.value).toEqual(updated.value);
+			expect(stored?.metadata).toEqual(updated.metadata);
+		});
+
+		it("supports entries without metadata", async () => {
+			const entry: CacheEntry = {
+				id: "entry-without-metadata",
+				query: "hello",
+				embedding: [1, 0, 0],
+				value: {
+					answer: 42,
+				},
+				createdAt: "2025-01-01T00:00:00.000Z",
+				updatedAt: "2025-01-01T00:00:00.000Z",
+				hits: 0,
+			};
+
+			await adapter.upsert(entry);
+
+			const stored = await adapter.getById(entry.id);
+
+			expect(stored).toEqual(entry);
+		});
 	});
 
 	describe("retrieval", () => {
-		it.todo("retrieves an entry by id");
+		it("retrieves all stored entries with complete field fidelity", async () => {
+			const entry: CacheEntry = {
+				id: "entry-1",
+				query: "complex query",
+				embedding: [0.1, 0.2, 0.3],
+				value: {
+					nested: {
+						array: [1, 2, 3],
+						boolean: true,
+						text: "hello",
+					},
+				},
+				createdAt: "2025-01-01T00:00:00.000Z",
+				updatedAt: "2025-01-02T00:00:00.000Z",
+				hits: 7,
+				metadata: {
+					tags: ["a", "b"],
+					nested: {
+						x: 1,
+					},
+				},
+			};
 
-		it.todo("returns undefined for a missing id");
+			await adapter.upsert(entry);
 
-		it.todo("retrieves all stored entries");
+			const entries = await adapter.getAll();
+
+			expect(entries).toHaveLength(1);
+			expect(entries[0]).toEqual(entry);
+		});
 	});
 
-	describe("deletion", () => {
-		it.todo("removes an existing entry");
+	describe("additional integration coverage", () => {
+		it("persists entries across adapter instances", async () => {
+			const connectionString = process.env.TEST_POSTGRES_CONNECTION_STRING!;
 
-		it.todo("does not fail when removing a missing entry");
+			const entry: CacheEntry = {
+				id: "persistent-entry",
+				query: "persist me",
+				embedding: [1, 0, 0],
+				value: {
+					test: true,
+				},
+				createdAt: "2025-01-01T00:00:00.000Z",
+				updatedAt: "2025-01-01T00:00:00.000Z",
+				hits: 0,
+			};
 
-		it.todo("clears all entries");
-	});
+			await adapter.upsert(entry);
 
-	describe("database persistence", () => {
-		it.todo("persists entries across adapter instances");
+			const secondAdapter = createPostgresDatabaseAdapter({
+				connectionString,
+			});
 
-		it.todo("persists entries across database connections");
+			try {
+				const stored = await secondAdapter.getById(entry.id);
 
-		it.todo("persists updates");
-
-		it.todo("persists deletions");
-	});
-
-	describe("concurrency", () => {
-		it.todo("supports concurrent inserts");
-
-		it.todo("supports concurrent updates");
-
-		it.todo("supports concurrent vector searches");
-	});
-
-	describe("database integration", () => {
-		it.todo("works against a real PostgreSQL instance");
-
-		it.todo("works when pgvector is enabled");
-
-		it.todo("fails gracefully when pgvector is unavailable");
-	});
-
-	describe("connection lifecycle", () => {
-		it.todo("opens connections successfully");
-
-		it.todo("closes connections successfully");
-
-		it.todo("rejects operations after close");
+				expect(stored).toEqual(entry);
+			} finally {
+				await secondAdapter.close?.();
+			}
+		});
 	});
 });
