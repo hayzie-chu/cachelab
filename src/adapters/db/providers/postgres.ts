@@ -6,6 +6,7 @@ import type { DatabaseAdapter } from "../types";
 export interface PostgresDatabaseAdapterOptions {
 	connectionString: string;
 	tableName?: string;
+	vectorDimensions?: number;
 }
 
 export function createPostgresDatabaseAdapter<TValue>(
@@ -23,11 +24,14 @@ export function createPostgresDatabaseAdapter<TValue>(
 				CREATE EXTENSION IF NOT EXISTS vector;
 			`);
 
+			const vectorType =
+				options.vectorDimensions != null ? `VECTOR(${options.vectorDimensions})` : "VECTOR";
+
 			await pool.query(`
 				CREATE TABLE IF NOT EXISTS ${tableName} (
 					id TEXT PRIMARY KEY,
 					query TEXT NOT NULL,
-					embedding VECTOR NOT NULL,
+					embedding ${vectorType} NOT NULL,
 					value JSONB NOT NULL,
 					created_at TIMESTAMPTZ NOT NULL,
 					updated_at TIMESTAMPTZ NOT NULL,
@@ -36,11 +40,13 @@ export function createPostgresDatabaseAdapter<TValue>(
 				);
 			`);
 
-			await pool.query(`
-				CREATE INDEX IF NOT EXISTS ${tableName}_embedding_idx
-				ON ${tableName}
-				USING hnsw (embedding vector_cosine_ops);
-			`);
+			if (options.vectorDimensions != null) {
+				await pool.query(`
+                    CREATE INDEX IF NOT EXISTS ${tableName}_embedding_idx
+                    ON ${tableName}
+                    USING hnsw (embedding vector_cosine_ops);
+                `);
+			}
 		},
 
 		async close(): Promise<void> {
@@ -193,8 +199,8 @@ function rowToEntry<TValue>(row: Record<string, unknown>): CacheEntry<TValue> {
 		query: String(row.query),
 		embedding: parseVector(String(row.embedding)),
 		value: row.value as TValue,
-		createdAt: String(row.created_at),
-		updatedAt: String(row.updated_at),
+		createdAt: new Date(row.created_at as Date).toISOString(),
+		updatedAt: new Date(row.updated_at as Date).toISOString(),
 		hits: Number(row.hits),
 		metadata: row.metadata === null ? undefined : (row.metadata as Record<string, unknown>),
 	};

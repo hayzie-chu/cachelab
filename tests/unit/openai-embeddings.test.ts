@@ -28,7 +28,9 @@ describe("createOpenAIEmbeddingAdapter", () => {
 	});
 
 	it("embeds a single input and returns its vector", async () => {
-		const fetchMock = jest.fn().mockResolvedValue(okResponse([{ embedding: [0.1, 0.2], index: 0 }]));
+		const fetchMock = jest
+			.fn()
+			.mockResolvedValue(okResponse([{ embedding: [0.1, 0.2], index: 0 }]));
 		global.fetch = fetchMock as unknown as typeof fetch;
 
 		const adapter = createOpenAIEmbeddingAdapter({ apiKey: "sk-test" });
@@ -106,9 +108,7 @@ describe("createOpenAIEmbeddingAdapter", () => {
 		global.fetch = fetchMock as unknown as typeof fetch;
 
 		const adapter = createOpenAIEmbeddingAdapter({ apiKey: "sk-test" });
-		await expect(adapter.embed("hello")).rejects.toThrow(
-			/401 Unauthorized.*Invalid API key/,
-		);
+		await expect(adapter.embed("hello")).rejects.toThrow(/401 Unauthorized.*Invalid API key/);
 	});
 
 	it("honors a custom baseUrl and model and strips a trailing slash", async () => {

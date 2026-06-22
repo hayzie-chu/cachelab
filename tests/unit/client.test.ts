@@ -379,9 +379,7 @@ describe("CacheLabClient.invoke", () => {
 
 		it("embeds sequentially when batching is disabled", async () => {
 			const { client, dbAdapter, embeddingAdapter } = createClient([]);
-			embeddingAdapter.embed
-				.mockResolvedValueOnce([1, 0])
-				.mockResolvedValueOnce([0, 1]);
+			embeddingAdapter.embed.mockResolvedValueOnce([1, 0]).mockResolvedValueOnce([0, 1]);
 
 			await client.seed(
 				[

@@ -11,7 +11,7 @@ import {
 	createOpenAIEmbeddingAdapter,
 } from "cachelab";
 
-// A built-in OpenAI adapter ships with the package 
+// A built-in OpenAI adapter ships with the package
 // // Any object implementing the EmbeddingAdapter contract works here too, see "Embeddings" below.
 const embeddingAdapter = createOpenAIEmbeddingAdapter({
 	apiKey: process.env.OPENAI_API_KEY!,
