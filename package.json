@@ -8,6 +8,8 @@
 		"build": "tsup src/index.ts --format cjs --dts --clean --out-dir dist",
 		"lint": "eslint .",
 		"test": "jest --config jest.config.cjs",
+		"test:unit": "jest --config jest.config.cjs tests/unit",
+		"test:integration": "jest --config jest.config.cjs tests/integration",
 		"typecheck": "tsc -p tsconfig.json --noEmit"
 	},
 	"repository": {

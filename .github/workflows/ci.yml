@@ -18,5 +18,7 @@ jobs:
                   cache: npm
             - run: npm ci
             - run: npm run lint
-            - run: npm test
+            # Skip integration tests because they need external env/secrets and may cost money
+            # can be run locally with `npm run test:integration` with your own env variables
+            - run: npm test -- --testPathIgnorePatterns=/tests/integration/
             - run: npm run build
