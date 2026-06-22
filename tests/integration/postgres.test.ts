@@ -167,6 +167,21 @@ describe("PostgresDatabaseAdapter", () => {
 				const stored = await secondAdapter.getById(entry.id);
 
 				expect(stored).toEqual(entry);
+
+				const updatedEntry: CacheEntry = {
+					...entry,
+					query: "persist me, updated",
+					embedding: [0, 1, 0],
+					value: { test: false },
+					updatedAt: "2025-02-01T00:00:00.000Z",
+				};
+
+				await secondAdapter.upsert(updatedEntry);
+
+				const storedAfterUpdate = await adapter.getById(entry.id);
+
+				expect(storedAfterUpdate).toEqual(updatedEntry);
+				expect(storedAfterUpdate?.createdAt).toBe(entry.createdAt);
 			} finally {
 				await secondAdapter.close?.();
 			}
