@@ -104,9 +104,7 @@ describe("createBatchingEmbeddingAdapter", () => {
 
 	it("starts a fresh batch after a flush", async () => {
 		const inner = makeInner();
-		inner.embedBatch
-			.mockResolvedValueOnce([[1, 0]])
-			.mockResolvedValueOnce([[0, 1]]);
+		inner.embedBatch.mockResolvedValueOnce([[1, 0]]).mockResolvedValueOnce([[0, 1]]);
 		const adapter = createBatchingEmbeddingAdapter(inner, {
 			maxBatchSize: 1,
 			maxWaitMs: 1000,
@@ -121,10 +119,14 @@ describe("createBatchingEmbeddingAdapter", () => {
 	it("validates its options", () => {
 		const inner = makeInner();
 
-		expect(() => createBatchingEmbeddingAdapter(inner, { maxBatchSize: 0, maxWaitMs: 10 })).toThrow();
+		expect(() =>
+			createBatchingEmbeddingAdapter(inner, { maxBatchSize: 0, maxWaitMs: 10 }),
+		).toThrow();
 		expect(() =>
 			createBatchingEmbeddingAdapter(inner, { maxBatchSize: 1.5, maxWaitMs: 10 }),
 		).toThrow();
-		expect(() => createBatchingEmbeddingAdapter(inner, { maxBatchSize: 2, maxWaitMs: -1 })).toThrow();
+		expect(() =>
+			createBatchingEmbeddingAdapter(inner, { maxBatchSize: 2, maxWaitMs: -1 }),
+		).toThrow();
 	});
 });

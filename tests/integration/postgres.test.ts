@@ -17,19 +17,12 @@ describe("PostgresDatabaseAdapter", () => {
 
 	describe("vector search", () => {
 		it.todo("returns no-candidate when no entries exist");
-
 		it.todo("returns the nearest embedding");
-
 		it.todo("returns the highest similarity match among multiple candidates");
-
 		it.todo("returns threshold-not-met when the nearest match is below threshold");
-
 		it.todo("returns threshold-met when the nearest match meets threshold");
-
 		it.todo("returns similarity information");
-
 		it.todo("supports high-dimensional embeddings");
-
 		it.todo("supports embeddings of arbitrary dimension");
 	});
 

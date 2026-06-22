@@ -2,11 +2,7 @@
 
 export { CacheLabClient } from "./client";
 
-export type {
-	CacheLabClientOptions,
-	SeedEntry,
-	SeedOptions,
-} from "./client";
+export type { CacheLabClientOptions, SeedEntry, SeedOptions } from "./client";
 
 export type { CacheDecision, CacheEntry, MetricEntry, QueryResult } from "./types";
 
