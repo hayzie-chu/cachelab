@@ -31,7 +31,7 @@ export function createPostgresDatabaseAdapter<TValue>(
 				CREATE TABLE IF NOT EXISTS ${tableName} (
 					id TEXT PRIMARY KEY,
 					query TEXT NOT NULL,
-					embedding ${vectorType} VECTOR NOT NULL,
+					embedding ${vectorType} NOT NULL,
 					value JSONB NOT NULL,
 					created_at TIMESTAMPTZ NOT NULL,
 					updated_at TIMESTAMPTZ NOT NULL,
@@ -199,8 +199,8 @@ function rowToEntry<TValue>(row: Record<string, unknown>): CacheEntry<TValue> {
 		query: String(row.query),
 		embedding: parseVector(String(row.embedding)),
 		value: row.value as TValue,
-		createdAt: String(row.created_at),
-		updatedAt: String(row.updated_at),
+		createdAt: new Date(row.created_at as Date).toISOString(),
+		updatedAt: new Date(row.updated_at as Date).toISOString(),
 		hits: Number(row.hits),
 		metadata: row.metadata === null ? undefined : (row.metadata as Record<string, unknown>),
 	};
