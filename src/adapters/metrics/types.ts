@@ -23,11 +23,7 @@ export interface MetricAdapter<TValue = unknown> {
 	getHitRate(filter?: MetricsFilter): Promise<number>;
 	getMissRate(filter?: MetricsFilter): Promise<number>;
 	getAverageLatency(filter?: MetricsFilter): Promise<number>;
-	getPercentileLatency(
-		percentile: number,
-		filter?: MetricsFilter,
-	): Promise<number>;
 	getTotalTokensSaved(filter?: MetricsFilter): Promise<number>;
-	getTotalCostSaved(filter?: MetricsFilter): Promise<number>;
+	getTotalTimeSaved(filter?: MetricsFilter): Promise<number>;
     
 }
