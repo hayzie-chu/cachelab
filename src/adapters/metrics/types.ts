@@ -9,7 +9,7 @@ export type MetricsFilter = {
 	before?: Date;
 };
 
-export interface MetricAdapter<TValue = unknown> {
+export interface MetricAdapter<_TValue = unknown> {
 	// For internal use, e.g: invoke()
 	record(entry: MetricEntry): Promise<void>;
 
