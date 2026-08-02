@@ -15,11 +15,16 @@ export function createPostgresMetricsStoreAdapter<TValue>(
 	};
 
 	return {
+        record: notImplemented,
 		getAll: notImplemented,
 		getById: notImplemented,
-		upsert: notImplemented,
-		remove: notImplemented,
 		clear: notImplemented,
+        getCount: notImplemented,
+		getHitRate: notImplemented,
+		getMissRate: notImplemented,
+		getAverageLatency: notImplemented,
+        getTotalTokensSaved: notImplemented,
+        getTotalTimeSaved: notImplemented,
 	} satisfies MetricAdapter<TValue>;
 }
 
