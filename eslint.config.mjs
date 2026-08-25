@@ -12,6 +12,7 @@ export default [
 			globals: {
 				fetch: "readonly",
 				Response: "readonly",
+				URLSearchParams: "readonly",
 				setTimeout: "readonly",
 				clearTimeout: "readonly",
 			},

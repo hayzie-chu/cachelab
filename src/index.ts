@@ -19,6 +19,8 @@ export { createInMemoryDatabaseAdapter } from "./adapters/db/in-memory";
 
 export { createPostgresDatabaseAdapter } from "./adapters/db/providers/postgres";
 
+export { createPineconeDatabaseAdapter } from "./adapters/db/providers/pinecone";
+
 export { createRedisDatabaseAdapter } from "./adapters/db/providers/redis";
 
 export { createOpenAIEmbeddingAdapter } from "./adapters/embeddings/openai";

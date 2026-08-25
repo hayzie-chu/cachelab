@@ -93,6 +93,58 @@ with the same error.
 > 2048-input chunks and stitched back together in order. This is independent of
 > the `batching.maxBatchSize` coalescing setting above.
 
+## Storage
+
+A database adapter stores cache entries and answers `findBestMatch(embedding,
+threshold)` with the nearest entry by cosine similarity. We currently have 3 built-in:
+
+```ts
+import {
+	createInMemoryDatabaseAdapter,
+	createPostgresDatabaseAdapter,
+	createPineconeDatabaseAdapter,
+} from "cachelab";
+```
+
+### Pinecone
+
+```ts
+const dbAdapter = createPineconeDatabaseAdapter({
+	apiKey: process.env.PINECONE_API_KEY!,
+	indexName: "cachelab", 
+	namespace: "production", 
+	vectorDimensions: 1536,
+	cloud: "aws",
+	region: "us-east-1",
+});
+// namespace: Optional, scope every read and write to one namespace.
+// vectorDimensions: Only used if `initialize()` has to create the index.
+
+// Creates the index if it does not exist yet, then waits for it to be ready.
+await dbAdapter.initialize?.();
+```
+
+The adapter talks to Pinecone's REST API directly, so there is no extra dependency. Things
+worth knowing:
+
+- **The index must use the `cosine` metric.** CacheLab reads match scores as
+  cosine similarities, so an index on another metric is rejected with a clear
+  error. `initialize()` creates cosine serverless indexes.
+- **`initialize()` is optional** if the index already exists — the adapter
+  resolves the data-plane host on its first request. Pass `host` to skip that
+  lookup entirely.
+- **Writes are eventually consistent.** An `upsert` is acknowledged before it
+  becomes queryable, so an immediate `invoke` on the same query may still miss.
+- **`vectorDimensions` must match your embedding model** (1536 for
+  `text-embedding-3-small`, 3072 for `text-embedding-3-large`).
+- `value` and `metadata` are stored as JSON strings, since Pinecone metadata
+  only holds strings, numbers, booleans, and string lists.
+- `getAll()` pages through the index with `vectors/list`, which serverless
+  indexes support (pod-based indexes do not).
+
+Its integration tests read `TEST_PINECONE_API_KEY`, and optionally
+`TEST_PINECONE_INDEX` and `TEST_PINECONE_NAMESPACE`.
+
 ## Scripts
 
 - `npm run build`

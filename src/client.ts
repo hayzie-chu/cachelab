@@ -54,7 +54,7 @@ export class CacheLabClient<TValue = string> {
 		model?: string;
 		metadata?: Record<string, unknown>;
 	}): Promise<QueryResult<TValue>> {
-		const threshold = options.threshold ?? 0.8;
+		const threshold = options.threshold ?? 0.8; //Maybe add dynamic default options depending on what model they use?
 		const queryEmbedding = await this.liveEmbeddingAdapter.embed(options.query);
 		const decision = await this.options.dbAdapter.findBestMatch(queryEmbedding, threshold);
 
